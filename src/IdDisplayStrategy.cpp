@@ -1,0 +1,55 @@
+#include "IdDisplayStrategy.h"
+#include "PointComponent.h"
+#include "Point.h"
+#include "Nuage.h"
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+IdDisplayStrategy::IdDisplayStrategy() {
+
+}
+
+IdDisplayStrategy::~IdDisplayStrategy() {
+
+}
+
+void IdDisplayStrategy::displayGrid(std::vector<std::shared_ptr<PointComponent>>& components) {
+     // Collect all points
+    std::vector<std::shared_ptr<Point>> allPoints;
+
+    auto collect = [&](std::shared_ptr<PointComponent> c, auto&& self) -> void {
+        if (auto p = std::dynamic_pointer_cast<Point>(c)) {
+            allPoints.push_back(p);
+        } else if (auto n = std::dynamic_pointer_cast<Nuage>(c)) {
+            for (auto child : n->getChildren()) {
+                self(child, self);
+            }
+        }
+    };
+
+    for (auto c : components) collect(c, collect);
+
+    if (allPoints.empty()) return;
+
+    int maxX = 0;
+    int maxY = 0;
+    for (auto p : allPoints) {
+        maxX = std::max(maxX, p->getX());
+        maxY = std::max(maxY, p->getY());
+    }
+
+    std::vector<std::string> grid(maxY + 1, std::string(maxX + 1, ' '));
+
+    for (auto p : allPoints) {
+        int id = p->getId();
+        // Use last digit of ID if single char grid? Or just put digit.
+        // If ID > 9, let's use mod 10 for simplicity in single char grid.
+        char c = '0' + (id % 10);
+        grid[p->getY()][p->getX()] = c;
+    }
+
+    for (int y = maxY; y >= 0; --y) {
+        std::cout << grid[y] << std::endl;
+    }
+}
