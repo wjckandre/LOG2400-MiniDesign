@@ -16,7 +16,6 @@ IdDisplayStrategy::~IdDisplayStrategy() {
 }
 
 void IdDisplayStrategy::displayGrid(std::vector<std::shared_ptr<PointComponent>>& components) {
-     // Collect all points
     std::vector<std::shared_ptr<Point>> allPoints;
 
     std::function<void(std::shared_ptr<PointComponent>)> collect;
@@ -45,8 +44,6 @@ void IdDisplayStrategy::displayGrid(std::vector<std::shared_ptr<PointComponent>>
 
     for (auto p : allPoints) {
         int id = p->getId();
-        // Use last digit of ID if single char grid? Or just put digit.
-        // If ID > 9, let's use mod 10 for simplicity in single char grid.
         char c = '0' + (id % 10);
         grid[p->getY()][p->getX()] = c;
     }

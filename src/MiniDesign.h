@@ -7,7 +7,7 @@ class MiniDesign {
 private:
     std::vector<Orthese*> ortheses;
     std::vector<std::shared_ptr<PointComponent>> components;
-    int nextNuageId = 0; // To track texture assignment
+    int nextNuageId = 0;
 
 public:
     MiniDesign(std::string input);

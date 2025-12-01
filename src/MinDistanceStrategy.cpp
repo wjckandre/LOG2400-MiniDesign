@@ -18,10 +18,7 @@ std::vector<std::shared_ptr<PointComponent>> MinDistanceStrategy::orderPoints(st
     std::vector<std::shared_ptr<PointComponent>> ordered;
     std::vector<std::shared_ptr<PointComponent>> remaining = points;
 
-    // Start with the point with lowest ID (or just first?)
-    // "relie les points selon la distance minimale" - usually implies start somewhere and go to nearest.
-    // Let's sort initially by ID to pick a deterministic start, or just pick first in list.
-    // Let's pick the one with lowest ID as start.
+    
     auto it = std::min_element(remaining.begin(), remaining.end(), [](const std::shared_ptr<PointComponent>& a, const std::shared_ptr<PointComponent>& b){
          auto pA = std::dynamic_pointer_cast<Point>(a);
          auto pB = std::dynamic_pointer_cast<Point>(b);
@@ -49,7 +46,6 @@ std::vector<std::shared_ptr<PointComponent>> MinDistanceStrategy::orderPoints(st
                     minDist = dist;
                     nearestIt = it2;
                 } else if (dist == minDist) {
-                    // Tie-break by ID
                      if (pCandidate->getId() < std::dynamic_pointer_cast<Point>(*nearestIt)->getId()) {
                          nearestIt = it2;
                      }

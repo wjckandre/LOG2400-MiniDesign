@@ -18,7 +18,7 @@ std::vector<std::shared_ptr<PointComponent>> IdOrderStrategy::orderPoints(std::v
         if (pA && pB) {
             return pA->getId() < pB->getId();
         }
-        return false; // Should not happen if all are points
+        return false;
     });
     return result;
 }

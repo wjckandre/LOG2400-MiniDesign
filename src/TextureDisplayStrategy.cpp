@@ -16,7 +16,6 @@ TextureDisplayStrategy::~TextureDisplayStrategy() {
 }
 
 void TextureDisplayStrategy::displayGrid(std::vector<std::shared_ptr<PointComponent>>& components) {
-    // Collect all points
     std::vector<std::shared_ptr<Point>> allPoints;
 
     std::function<void(std::shared_ptr<PointComponent>)> collect;
@@ -48,13 +47,6 @@ void TextureDisplayStrategy::displayGrid(std::vector<std::shared_ptr<PointCompon
         char c = t.empty() ? '.' : t[0];
         grid[p->getY()][p->getX()] = c;
     }
-
-    // Print upside down or normal?
-    // Coordinates usually: (0,0) at bottom-left or top-left?
-    // Standard console is top-left (0,0).
-    // But math graphs are bottom-left.
-    // Given the input (5,0), (14,16)... let's assume standard math coordinates
-    // where Y increases upwards. So we print from maxY down to 0.
 
     for (int y = maxY; y >= 0; --y) {
         std::cout << grid[y] << std::endl;
