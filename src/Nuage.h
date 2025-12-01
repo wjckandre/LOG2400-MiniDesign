@@ -17,10 +17,12 @@ public:
     virtual ~Nuage();
 
     void add(std::shared_ptr<PointComponent> c);
+    void addAt(std::shared_ptr<PointComponent> c, size_t idx);
     void remove(std::shared_ptr<PointComponent> c);
     std::vector<std::shared_ptr<PointComponent>> getChildren();
     Nuage* getNuage();
     void getPoints(std::vector<Point>& points);
+    std::vector<std::shared_ptr<PointComponent>> getAllChildren();
     std::string getTexture() const;
 };
 

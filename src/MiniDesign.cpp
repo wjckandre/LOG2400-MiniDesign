@@ -132,12 +132,42 @@ void MiniDesign::run() {
             std::cin >> id >> x >> y;
             auto comp = findComponentById(id);
             if (auto p = std::dynamic_pointer_cast<Point>(comp)) {
+                // record move
+                Action a;
+                a.type = Action::Move;
+                a.id = id;
+                a.oldX = p->getX();
+                a.oldY = p->getY();
+                a.newX = x;
+                a.newY = y;
+                undoStack.push_back(a);
+                redoStack.clear();
                 p->move(x, y);
             }
         } else if (command == "s") {
             int id;
             std::cin >> id;
-            removeComponentById(id);
+            auto comp = findComponentById(id);
+            if (comp) {
+                // find parent info
+                auto parentInfo = findParentInfo(id);
+                Action a;
+                a.type = Action::Delete;
+                a.id = id;
+                a.comp = comp;
+                if (parentInfo.first) {
+                    a.wasTopLevel = false;
+                    a.parentNuage = parentInfo.first;
+                    a.index = parentInfo.second;
+                } else {
+                    a.wasTopLevel = true;
+                    a.index = parentInfo.second;
+                }
+                undoStack.push_back(a);
+                redoStack.clear();
+                // remove
+                removeComponentById(id);
+            }
         } else if (command == "c1") {
             for (auto& c : components) {
                 if (auto n = std::dynamic_pointer_cast<Nuage>(c)) {
@@ -166,6 +196,111 @@ void MiniDesign::run() {
                    ortheses.push_back(new Orthese(n.get(), pts));
                 }
             }
+        }
+        else if (command == "u") {
+            undo();
+        } else if (command == "r") {
+            redo();
+        }
+    }
+}
+
+void MiniDesign::removeComponentPointer(const std::shared_ptr<PointComponent>& comp) {
+    // remove comp from top-level or from any nuage
+    for (auto it = components.begin(); it != components.end(); ++it) {
+        if (*it == comp) {
+            components.erase(it);
+            return;
+        }
+        if (auto n = std::dynamic_pointer_cast<Nuage>(*it)) {
+            auto children = n->getChildren();
+            for (auto child : children) {
+                if (child == comp) {
+                    n->remove(child);
+                    return;
+                }
+            }
+        }
+    }
+}
+
+std::pair<std::shared_ptr<Nuage>, size_t> MiniDesign::findParentInfo(int id) {
+    for (size_t i = 0; i < components.size(); ++i) {
+        auto c = components[i];
+        if (auto p = std::dynamic_pointer_cast<Point>(c)) {
+            if (p->getId() == id) return {nullptr, i};
+        } else if (auto n = std::dynamic_pointer_cast<Nuage>(c)) {
+            auto children = n->getChildren();
+            for (size_t j = 0; j < children.size(); ++j) {
+                if (auto childP = std::dynamic_pointer_cast<Point>(children[j])) {
+                    if (childP->getId() == id) return {n, j};
+                } else if (auto childN = std::dynamic_pointer_cast<Nuage>(children[j])) {
+                    // Search recursively within nested nuages
+                    // Use getAllChildren to find points
+                    auto all = childN->getAllChildren();
+                    for (size_t k = 0; k < all.size(); ++k) {
+                        if (auto ap = std::dynamic_pointer_cast<Point>(all[k])) {
+                            if (ap->getId() == id) return {childN, k};
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return {nullptr, 0};
+}
+
+void MiniDesign::undo() {
+    if (undoStack.empty()) {
+        std::cout << "Nothing to undo." << std::endl;
+        return;
+    }
+    Action a = undoStack.back();
+    undoStack.pop_back();
+    if (a.type == Action::Move) {
+        auto comp = findComponentById(a.id);
+        if (auto p = std::dynamic_pointer_cast<Point>(comp)) {
+            p->move(a.oldX, a.oldY);
+            redoStack.push_back(a);
+            std::cout << "Undo: moved ID " << a.id << " back to (" << a.oldX << ", " << a.oldY << ")" << std::endl;
+        }
+    } else if (a.type == Action::Delete) {
+        // reinsert
+        if (a.wasTopLevel) {
+            if (a.index <= components.size()) components.insert(components.begin() + a.index, a.comp);
+            else components.push_back(a.comp);
+        } else if (a.parentNuage) {
+            a.parentNuage->addAt(a.comp, a.index);
+        } else {
+            components.push_back(a.comp);
+        }
+        redoStack.push_back(a);
+        std::cout << "Undo: restored ID " << a.id << std::endl;
+    }
+}
+
+void MiniDesign::redo() {
+    if (redoStack.empty()) {
+        std::cout << "Nothing to redo." << std::endl;
+        return;
+    }
+    Action a = redoStack.back();
+    redoStack.pop_back();
+    if (a.type == Action::Move) {
+        auto comp = findComponentById(a.id);
+        if (auto p = std::dynamic_pointer_cast<Point>(comp)) {
+            p->move(a.newX, a.newY);
+            undoStack.push_back(a);
+            std::cout << "Redo: moved ID " << a.id << " to (" << a.newX << ", " << a.newY << ")" << std::endl;
+        }
+    } else if (a.type == Action::Delete) {
+        // perform delete again
+        // locate by id and remove pointer
+        auto comp = findComponentById(a.id);
+        if (comp) {
+            removeComponentPointer(comp);
+            undoStack.push_back(a);
+            std::cout << "Redo: deleted ID " << a.id << std::endl;
         }
     }
 }

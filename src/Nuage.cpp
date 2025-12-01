@@ -25,6 +25,17 @@ void Nuage::add(std::shared_ptr<PointComponent> c) {
     }
 }
 
+void Nuage::addAt(std::shared_ptr<PointComponent> c, size_t idx) {
+    if (idx >= children.size()) {
+        add(c);
+        return;
+    }
+    children.insert(children.begin() + idx, c);
+    if (auto p = std::dynamic_pointer_cast<Point>(c)) {
+        p->setTexture(this->texture);
+    }
+}
+
 void Nuage::remove(std::shared_ptr<PointComponent> c) {
     auto it = std::remove(children.begin(), children.end(), c);
     if (it != children.end()) {
@@ -52,6 +63,19 @@ void Nuage::getPoints(std::vector<Point>& points) {
             n->getPoints(points);
         }
     }
+}
+
+std::vector<std::shared_ptr<PointComponent>> Nuage::getAllChildren() {
+    std::vector<std::shared_ptr<PointComponent>> result;
+    for (const auto& child : children) {
+        if (auto p = std::dynamic_pointer_cast<Point>(child)) {
+            result.push_back(child);
+        } else if (auto n = std::dynamic_pointer_cast<Nuage>(child)) {
+            auto sub = n->getAllChildren();
+            result.insert(result.end(), sub.begin(), sub.end());
+        }
+    }
+    return result;
 }
 
 std::string Nuage::getTexture() const {
