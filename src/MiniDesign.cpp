@@ -8,6 +8,7 @@
 #include "MinDistanceStrategy.h"
 #include <iostream>
 #include <sstream>
+#include <unordered_set>
 #include <regex>
 
 MiniDesign::MiniDesign(std::string input) {
@@ -87,22 +88,44 @@ void MiniDesign::run() {
             strategy.displayGrid(components);
         } else if (command == "f") {
             std::string line;
-            std::getline(std::cin, line);
+            std::getline(std::cin >> std::ws, line);
             std::stringstream ss(line);
             int id;
+
+            std::vector<int> ids;
+            while (ss >> id) ids.push_back(id);
+
+            // Remove duplicates while preserving order
+            std::vector<int> uniqueIds;
+            std::unordered_set<int> seen;
+            for (int v : ids) {
+                if (seen.insert(v).second) uniqueIds.push_back(v);
+            }
+
             std::string texture = (nextNuageId == 0) ? "o" : "#";
             nextNuageId++;
 
             auto nuage = std::make_shared<Nuage>(texture, std::vector<Point>());
-
-            while (ss >> id) {
-                auto comp = findComponentById(id);
-                if (comp) {
-                    removeComponentById(id);
-                    nuage->add(comp);
+            std::vector<int> addedIds;
+            for (int v : uniqueIds) {
+                auto comp = findComponentById(v);
+                if (!comp) {
+                    std::cout << "Warning: ID " << v << " not found, ignored." << std::endl;
+                    continue;
                 }
+                removeComponentById(v);
+                nuage->add(comp);
+                addedIds.push_back(v);
             }
-            components.push_back(nuage);
+
+            if (addedIds.empty()) {
+                std::cout << "No valid IDs provided; nuage not created." << std::endl;
+            } else {
+                components.push_back(nuage);
+                std::cout << "Nuage created with texture '" << texture << "' containing IDs:";
+                for (int v : addedIds) std::cout << ' ' << v;
+                std::cout << std::endl;
+            }
 
         } else if (command == "d") {
             int id, x, y;

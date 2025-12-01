@@ -1,0 +1,41 @@
+﻿Running scenario 2...
+Point: ID=0 (2, 0) Texture=.
+Point: ID=1 (28, 8) Texture=.
+Point: ID=2 (28, 0) Texture=.
+Point: ID=3 (2, 8) Texture=.
+Point: ID=4 (15, 16) Texture=.
+               .             
+                             
+                             
+                             
+                             
+                             
+                             
+                             
+  .                         .
+                             
+                             
+                             
+                             
+                             
+                             
+                             
+  .                         .
+               4             
+                             
+                             
+                             
+                             
+                             
+                             
+                             
+  3                         1
+                             
+                             
+                             
+                             
+                             
+                             
+                             
+  0                         2
+Nuage created with texture 'o' containing IDs: 0 1 2
